@@ -1,0 +1,100 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Вход в аккаунт</title>
+    <style>
+        body {
+            background: #181c24;
+            color: #f3f3f3;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .login-container {
+            max-width: 400px;
+            margin: 60px auto;
+            background: #23283a;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px #0003;
+            padding: 32px 28px 24px 28px;
+        }
+        h2 {
+            color: #ffb300;
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            background: #181c24;
+            color: #f3f3f3;
+            border: 1px solid #4fc3f7;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 18px;
+            font-size: 1em;
+        }
+        button {
+            width: 100%;
+            background: #ffb300;
+            color: #23283a;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-weight: bold;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        button:hover {
+            background: #4fc3f7;
+            color: #181c24;
+        }
+        .login-links {
+            text-align: center;
+            margin-top: 18px;
+        }
+        .login-links a {
+            color: #4fc3f7;
+            text-decoration: none;
+            margin: 0 8px;
+        }
+        .login-links a:hover {
+            text-decoration: underline;
+        }
+        .errorlist {
+            color: #ff5252;
+            margin-bottom: 12px;
+            list-style: none;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Вход в аккаунт</h2>
+        <form method="post" action="">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            <label for="id_username">Логин</label>
+            {{ form.username }}
+            <label for="id_password">Пароль</label>
+            {{ form.password }}
+            <div style="text-align:right;margin-bottom:12px;">
+                <a href="{% url 'password_reset' %}" style="color:#4fc3f7;text-decoration:underline;font-size:0.98em;">Забыл пароль?</a>
+            </div>
+            <button type="submit">Войти</button>
+        </form>
+        <div class="login-links">
+            <a href="/register/">Регистрация</a>
+            <a href="/">На главную</a>
+        </div>
+    </div>
+</body>
+</html>

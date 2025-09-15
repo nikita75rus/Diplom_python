@@ -1,0 +1,460 @@
+{% load catalog_extras %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Каталог игр</title>
+    <link rel="stylesheet" href="{% static 'catalog/main.css' %}">
+</head>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const themeToggle = document.getElementById('theme-toggle');
+    if(localStorage.getItem('theme') === 'light') {
+        document.body.classList.add('light');
+        themeToggle.checked = true;
+    }
+    themeToggle.addEventListener('change', function() {
+        if(this.checked) {
+            document.body.classList.add('light');
+            localStorage.setItem('theme', 'light');
+        } else {
+            document.body.classList.remove('light');
+            localStorage.setItem('theme', 'dark');
+        }
+    });
+});
+</script>
+<body>
+    <div class="header-bar">
+    <h1><a href="/" style="color:inherit;text-decoration:none;">TorrentNest</a></h1>
+        <div class="header-actions">
+            <form method="get" action="/search/" class="search-form" onsubmit="window.location.href='/search/?q='+encodeURIComponent(this.q.value)+(this.tag.value ? '&tag='+encodeURIComponent(this.tag.value) : ''); return false;">
+                <input type="text" name="q" placeholder="Поиск игр" value="{{ query }}">
+                <select name="tag">
+                    <option value="">-- По тегу --</option>
+                    {% for tag in tags %}
+                        <option value="{{ tag.name }}" {% if tag_filter == tag.name %}selected{% endif %}>{{ tag.name }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Найти</button>
+            </form>
+            <label class="theme-switch">
+                <input type="checkbox" id="theme-toggle">
+                <span class="slider"></span>
+            </label>
+            {% if user.is_authenticated %}
+                <span class="user-info">
+                    <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Пользователь" style="width:28px;vertical-align:middle;">
+                    {{ user.username }}
+                    <button class="favorites-btn" onclick="window.location.hash='favorites'" style="margin-left:10px;background:#2196f3;color:#fff;border:none;padding:6px 16px;border-radius:8px;cursor:pointer;font-weight:600;">
+                        Избранное <span style="background:#fff;color:#2196f3;border-radius:6px;padding:2px 8px;font-size:1em;margin-left:4px;">{{ favorites_games|length }}</span>
+                    </button>
+                    <form action="/logout/" method="post" style="display:inline; margin-left:10px;">
+                        {% csrf_token %}
+                        <button type="submit" class="register-btn">Выйти</button>
+                    </form>
+                </span>
+            {% else %}
+                <a href="/login/" class="register-btn">Войти</a>
+                <a href="/register/" class="register-btn">Регистрация</a>
+            {% endif %}
+        </div>
+    </div>
+    <!-- Удаляем старую навигацию по категориям -->
+    <!-- <nav class="main-menu">
+        <a class="menu-btn" href="/">Главная</a>
+        <a class="menu-btn" href="#new">Новинки</a>
+        <a class="menu-btn" href="#updated">Недавно обновлённые</a>
+        <a class="menu-btn" href="#top">ТОП 250 игр</a>
+        <a class="menu-btn" href="#year">Игры года</a>
+    </nav> -->
+    <!-- Поиск теперь в header-bar -->
+    <!-- Категории удалены -->
+    <!-- Теги отображаются только на отдельной странице -->
+    <!-- Новинки -->
+        <div class="category-filter">
+            <button class="filter-btn active" data-cat="new">Новинки</button>
+            <button class="filter-btn" data-cat="updated">Недавно обновлённые</button>
+            <button class="filter-btn" data-cat="top">ТОП 250 игр</button>
+            <button class="filter-btn" data-cat="year">Игры года</button>
+        </div>
+    <div id="new" class="cards-row category-block">
+                {% for game in new_page_obj %}
+                    <div class="game-card modern-card">
+                        <a href="/game/{{ game.id }}/" style="text-decoration:none;display:block;">
+                            <div class="cover-wrap">
+                                {% if game.cover_image %}
+                                    <img src="{{ game.cover_image.url }}" alt="Обложка" class="modern-cover">
+                                {% endif %}
+                                {% if game.is_announce %}
+                                    <span class="announce-label">Анонс</span>
+                                {% endif %}
+                            </div>
+                            <div class="modern-info">
+                                <div class="game-title">{{ game.title }}</div>
+                                <div class="card-bottom">
+                                    <div class="downloads"><span style="font-size:1.1em;">&#128229;</span> {{ game.downloads|default:0 }}</div>
+                                    <div class="rating-year">
+                                        <span class="year-label">{{ game.release_date|date:"Y" }}</span>
+                                    </div>
+                                </div>
+                                <div class="steam-rating">
+                                    <div style="margin-top:8px;">
+                                        <div style="font-size:0.95em;color:#bbb;">Отзывы игроков Steam:</div>
+                                        {% if game.steam_review_count > 0 %}
+                                        <div style="display:flex;align-items:center;gap:8px;">
+                                            <div style="width:80px;height:10px;background:#222;border-radius:6px;overflow:hidden;">
+                                                <div style="height:10px;width:{{ game.steam_review_percent }}%;background:{{ game.steam_review_percent|rating_color }};border-radius:6px;"></div>
+                                            </div>
+                                            <span style="font-size:1em;font-weight:600;color:{{ game.steam_review_percent|rating_color }};">{{ game.steam_review_percent }}%</span>
+                                            <span style="font-size:0.95em;color:#bbb;">({{ game.steam_review_count }} оценок)</span>
+                                            <span style="font-size:0.95em;font-weight:600;color:{{ game.steam_review_percent|rating_color }};margin-left:8px;">{{ game.steam_review_status }}</span>
+                                        </div>
+                                        {% else %}
+                                        <div style="font-size:1em;color:#bbb;padding:8px 0 0 0;">Нет отзывов</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                        {% if user.is_authenticated %}
+                            <div style="position:absolute;top:10px;left:10px;z-index:3;">
+                                {% if game.id in favorites %}
+                                    <a href="/remove-favorite/{{ game.id }}/" class="fav-toggle" title="Убрать из избранного">★</a>
+                                {% else %}
+                                    <a href="/add-favorite/{{ game.id }}/" class="fav-toggle" title="Добавить в избранное">☆</a>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% if new_page_obj.has_other_pages %}
+            <div class="pagination" style="display:flex;justify-content:center;align-items:center;margin:32px 0;gap:8px;">
+                {% if new_page_obj.has_previous %}
+                    <a href="?new_page=1#new" style="padding:6px 12px;border-radius:6px;background:#23243a;color:#fff;text-decoration:none;">&laquo;</a>
+                    <a href="?new_page={{ new_page_obj.previous_page_number }}#new" style="padding:6px 12px;border-radius:6px;background:#23243a;color:#fff;text-decoration:none;">&lt;</a>
+                {% endif %}
+                {% for num in new_page_obj.paginator.page_range %}
+                    {% if num == new_page_obj.number %}
+                        <span style="padding:6px 12px;border-radius:6px;background:#2196f3;color:#fff;font-weight:700;">{{ num }}</span>
+                    {% elif num >= new_page_obj.number|add:'-2' and num <= new_page_obj.number|add:'2' %}
+                        <a href="?new_page={{ num }}#new" style="padding:6px 12px;border-radius:6px;background:#23243a;color:#fff;text-decoration:none;">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+                {% if new_page_obj.has_next %}
+                    <a href="?new_page={{ new_page_obj.next_page_number }}#new" style="padding:6px 12px;border-radius:6px;background:#23243a;color:#fff;text-decoration:none;">&gt;</a>
+                    <a href="?new_page={{ new_page_obj.paginator.num_pages }}#new" style="padding:6px 12px;border-radius:6px;background:#23243a;color:#fff;text-decoration:none;">&raquo;</a>
+                {% endif %}
+            </div>
+        {% endif %}
+        </div>
+    <!-- Недавно обновлённые -->
+        <div id="updated" class="cards-row category-block" style="display:none;">
+            {% for game in updated_page_obj %}
+                <div class="game-card modern-card">
+                    <a href="/game/{{ game.id }}/" style="text-decoration:none;display:block;">
+                        <div class="cover-wrap">
+                            {% if game.cover_image %}
+                                <img src="{{ game.cover_image.url }}" alt="Обложка" class="modern-cover">
+                            {% endif %}
+                            {% if game.is_announce %}
+                                <span class="announce-label">Анонс</span>
+                            {% endif %}
+                        </div>
+                        <div class="modern-info">
+                            <div class="game-title">{{ game.title }}</div>
+                            <div class="card-bottom">
+                                <div class="downloads"><span style="font-size:1.1em;">&#128229;</span> {{ game.downloads|default:0 }}</div>
+                                <div class="rating-year">
+                                    <span class="year-label">{{ game.release_date|date:"Y" }}</span>
+                                </div>
+                            </div>
+                            <div class="steam-rating">
+                                <div style="margin-top:8px;">
+                                    <div style="font-size:0.95em;color:#bbb;">Отзывы игроков Steam:</div>
+                                    {% if game.steam_review_count > 0 %}
+                                    <div style="display:flex;align-items:center;gap:8px;">
+                                        <div style="width:80px;height:10px;background:#222;border-radius:6px;overflow:hidden;">
+                                            <div style="height:10px;width:{{ game.steam_review_percent }}%;background:{{ game.steam_review_percent|rating_color }};border-radius:6px;"></div>
+                                        </div>
+                                        <span style="font-size:1em;font-weight:600;color:{{ game.steam_review_percent|rating_color }};">{{ game.steam_review_percent }}%</span>
+                                        <span style="font-size:0.95em;color:#bbb;">({{ game.steam_review_count }} оценок)</span>
+                                        <span style="font-size:0.95em;font-weight:600;color:{{ game.steam_review_percent|rating_color }};margin-left:8px;">{{ game.steam_review_status }}</span>
+                                    </div>
+                                    {% else %}
+                                    <div style="font-size:1em;color:#bbb;padding:8px 0 0 0;">Нет отзывов</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+            {% if updated_page_obj.has_other_pages %}
+                <div class="pagination" style="display:flex;justify-content:center;align-items:center;margin:32px 0;gap:8px;">
+                    {% if updated_page_obj.has_previous %}
+                        <a href="?updated_page=1#updated" style="padding:6px 12px;border-radius:6px;background:#23243a;color:#fff;text-decoration:none;">&laquo;</a>
+                        <a href="?updated_page={{ updated_page_obj.previous_page_number }}#updated" style="padding:6px 12px;border-radius:6px;background:#23243a;color:#fff;text-decoration:none;">&lt;</a>
+                    {% endif %}
+                    {% for num in updated_page_obj.paginator.page_range %}
+                        {% if num == updated_page_obj.number %}
+                            <span style="padding:6px 12px;border-radius:6px;background:#2196f3;color:#fff;font-weight:700;">{{ num }}</span>
+                        {% elif num >= updated_page_obj.number|add:'-2' and num <= updated_page_obj.number|add:'2' %}
+                            <a href="?updated_page={{ num }}#updated" style="padding:6px 12px;border-radius:6px;background:#23243a;color:#fff;text-decoration:none;">{{ num }}</a>
+                        {% endif %}
+                    {% endfor %}
+                    {% if updated_page_obj.has_next %}
+                        <a href="?updated_page={{ updated_page_obj.next_page_number }}#updated" style="padding:6px 12px;border-radius:6px;background:#23243a;color:#fff;text-decoration:none;">&gt;</a>
+                        <a href="?updated_page={{ updated_page_obj.paginator.num_pages }}#updated" style="padding:6px 12px;border-radius:6px;background:#23243a;color:#fff;text-decoration:none;">&raquo;</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    <!-- ТОП 250 игр -->
+        <div id="top" class="cards-row category-block" style="display:none;">
+            {% for game in top_page_obj %}
+                <div class="game-card modern-card">
+                    <a href="/game/{{ game.id }}/" style="text-decoration:none;display:block;">
+                        <div class="cover-wrap">
+                            {% if game.cover_image %}
+                                <img src="{{ game.cover_image.url }}" alt="Обложка" class="modern-cover">
+                            {% endif %}
+                            {% if game.is_announce %}
+                                <span class="announce-label">Анонс</span>
+                            {% endif %}
+                        </div>
+                        <div class="modern-info">
+                            <div class="game-title">{{ game.title }}</div>
+                            <div class="card-bottom">
+                                <div class="downloads"><span style="font-size:1.1em;">&#128229;</span> {{ game.downloads|default:0 }}</div>
+                                <div class="rating-year">
+                                    <span class="year-label">{{ game.release_date|date:"Y" }}</span>
+                                </div>
+                            </div>
+                            <div class="steam-rating">
+                                <div style="margin-top:8px;">
+                                    <div style="font-size:0.95em;color:#bbb;">Отзывы игроков Steam:</div>
+                                    {% if game.steam_review_count > 0 %}
+                                    <div style="display:flex;align-items:center;gap:8px;">
+                                        <div style="width:80px;height:10px;background:#222;border-radius:6px;overflow:hidden;">
+                                            <div style="height:10px;width:{{ game.steam_review_percent }}%;background:{{ game.steam_review_percent|rating_color }};border-radius:6px;"></div>
+                                        </div>
+                                        <span style="font-size:1em;font-weight:600;color:{{ game.steam_review_percent|rating_color }};">{{ game.steam_review_percent }}%</span>
+                                        <span style="font-size:0.95em;color:#bbb;">({{ game.steam_review_count }} оценок)</span>
+                                        <span style="font-size:0.95em;font-weight:600;color:{{ game.steam_review_percent|rating_color }};margin-left:8px;">{{ game.steam_review_status }}</span>
+                                    </div>
+                                    {% else %}
+                                    <div style="font-size:1em;color:#bbb;padding:8px 0 0 0;">Нет отзывов</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+            {% if top_page_obj.has_other_pages %}
+                <div class="pagination" style="display:flex;justify-content:center;align-items:center;margin:32px 0;gap:8px;">
+                    {% if top_page_obj.has_previous %}
+                        <a href="?top_page=1#top" style="padding:6px 12px;border-radius:6px;background:#23243a;color:#fff;text-decoration:none;">&laquo;</a>
+                        <a href="?top_page={{ top_page_obj.previous_page_number }}#top" style="padding:6px 12px;border-radius:6px;background:#23243a;color:#fff;text-decoration:none;">&lt;</a>
+                    {% endif %}
+                    {% for num in top_page_obj.paginator.page_range %}
+                        {% if num == top_page_obj.number %}
+                            <span style="padding:6px 12px;border-radius:6px;background:#2196f3;color:#fff;font-weight:700;">{{ num }}</span>
+                        {% elif num >= top_page_obj.number|add:'-2' and num <= top_page_obj.number|add:'2' %}
+                            <a href="?top_page={{ num }}#top" style="padding:6px 12px;border-radius:6px;background:#23243a;color:#fff;text-decoration:none;">{{ num }}</a>
+                        {% endif %}
+                    {% endfor %}
+                    {% if top_page_obj.has_next %}
+                        <a href="?top_page={{ top_page_obj.next_page_number }}#top" style="padding:6px 12px;border-radius:6px;background:#23243a;color:#fff;text-decoration:none;">&gt;</a>
+                        <a href="?top_page={{ top_page_obj.paginator.num_pages }}#top" style="padding:6px 12px;border-radius:6px;background:#23243a;color:#fff;text-decoration:none;">&raquo;</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    <!-- Игры года -->
+        <div id="year" class="cards-row category-block" style="display:none;">
+            {% for game in year_page_obj %}
+                <div class="game-card modern-card">
+                    <a href="/game/{{ game.id }}/" style="text-decoration:none;display:block;">
+                        <div class="cover-wrap">
+                            {% if game.cover_image %}
+                                <img src="{{ game.cover_image.url }}" alt="Обложка" class="modern-cover">
+                            {% endif %}
+                            {% if game.is_announce %}
+                                <span class="announce-label">Анонс</span>
+                            {% endif %}
+                        </div>
+                        <div class="modern-info">
+                            <div class="game-title">{{ game.title }}</div>
+                            <div class="card-bottom">
+                                <div class="downloads"><span style="font-size:1.1em;">&#128229;</span> {{ game.downloads|default:0 }}</div>
+                                <div class="rating-year">
+                                    <span class="year-label">{{ game.release_date|date:"Y" }}</span>
+                                </div>
+                            </div>
+                            <div class="steam-rating">
+                                <div style="margin-top:8px;">
+                                    <div style="font-size:0.95em;color:#bbb;">Отзывы игроков Steam:</div>
+                                    {% if game.steam_review_count > 0 %}
+                                    <div style="display:flex;align-items:center;gap:8px;">
+                                        <div style="width:80px;height:10px;background:#222;border-radius:6px;overflow:hidden;">
+                                            <div style="height:10px;width:{{ game.steam_review_percent }}%;background:{{ game.steam_review_percent|rating_color }};border-radius:6px;"></div>
+                                        </div>
+                                        <span style="font-size:1em;font-weight:600;color:{{ game.steam_review_percent|rating_color }};">{{ game.steam_review_percent }}%</span>
+                                        <span style="font-size:0.95em;color:#bbb;">({{ game.steam_review_count }} оценок)</span>
+                                        <span style="font-size:0.95em;font-weight:600;color:{{ game.steam_review_percent|rating_color }};margin-left:8px;">{{ game.steam_review_status }}</span>
+                                    </div>
+                                    {% else %}
+                                    <div style="font-size:1em;color:#bbb;padding:8px 0 0 0;">Нет отзывов</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+            {% if year_page_obj.has_other_pages %}
+                <div class="pagination" style="display:flex;justify-content:center;align-items:center;margin:32px 0;gap:8px;">
+                    {% if year_page_obj.has_previous %}
+                        <a href="?year_page=1#year" style="padding:6px 12px;border-radius:6px;background:#23243a;color:#fff;text-decoration:none;">&laquo;</a>
+                        <a href="?year_page={{ year_page_obj.previous_page_number }}#year" style="padding:6px 12px;border-radius:6px;background:#23243a;color:#fff;text-decoration:none;">&lt;</a>
+                    {% endif %}
+                    {% for num in year_page_obj.paginator.page_range %}
+                        {% if num == year_page_obj.number %}
+                            <span style="padding:6px 12px;border-radius:6px;background:#2196f3;color:#fff;font-weight:700;">{{ num }}</span>
+                        {% elif num >= year_page_obj.number|add:'-2' and num <= year_page_obj.number|add:'2' %}
+                            <a href="?year_page={{ num }}#year" style="padding:6px 12px;border-radius:6px;background:#23243a;color:#fff;text-decoration:none;">{{ num }}</a>
+                        {% endif %}
+                    {% endfor %}
+                    {% if year_page_obj.has_next %}
+                        <a href="?year_page={{ year_page_obj.next_page_number }}#year" style="padding:6px 12px;border-radius:6px;background:#23243a;color:#fff;text-decoration:none;">&gt;</a>
+                        <a href="?year_page={{ year_page_obj.paginator.num_pages }}#year" style="padding:6px 12px;border-radius:6px;background:#23243a;color:#fff;text-decoration:none;">&raquo;</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    <!-- Избранное -->
+        <div id="favorites" class="cards-row category-block" style="display:none;">
+            {% for game in favorites_page_obj %}
+                <div class="game-card modern-card">
+                    <a href="/game/{{ game.id }}/" style="text-decoration:none;display:block;">
+                        <div class="cover-wrap">
+                            {% if game.cover_image %}
+                                <img src="{{ game.cover_image.url }}" alt="Обложка" class="modern-cover">
+                            {% endif %}
+                        </div>
+                        <div class="modern-info">
+                            <div class="game-title">{{ game.title }}</div>
+                            <div class="card-bottom">
+                                <div class="downloads"><span style="font-size:1.1em;">&#128229;</span> {{ game.downloads|default:0 }}</div>
+                                <div class="rating-year">
+                                    <span class="year-label">{{ game.release_date|date:"Y" }}</span>
+                                </div>
+                            </div>
+                            <div class="steam-rating">
+                                    <div style="margin-top:8px;">
+                                        <div style="font-size:0.95em;color:#bbb;">Отзывы игроков Steam:</div>
+                                        <div style="display:flex;align-items:center;gap:8px;">
+                                            <div style="width:80px;height:10px;background:#222;border-radius:6px;overflow:hidden;">
+                                                <div style="height:10px;width:{{ game.steam_review_percent }}%;background:{{ game.steam_review_percent|rating_color }};border-radius:6px;"></div>
+                                            </div>
+                                            <span style="font-size:1em;font-weight:600;color:{{ game.steam_review_percent|rating_color }};">{{ game.steam_review_percent }}%</span>
+                                            <span style="font-size:0.95em;color:#bbb;">({{ game.steam_review_count|default:0 }} оценок)</span>
+                                            <span style="font-size:0.95em;font-weight:600;color:{{ game.steam_review_percent|rating_color }};margin-left:8px;">{{ game.steam_review_status }}</span>
+                                        </div>
+                                    </div>
+                            </div>
+                        </div>
+                    </a>
+                    <div style="position:absolute;top:10px;left:10px;z-index:3;">
+                        <a href="/remove-favorite/{{ game.id }}/" class="fav-toggle" title="Убрать из избранного">★</a>
+                    </div>
+                </div>
+            {% empty %}
+                <div style="color:#fff;font-size:1.2em;margin:32px auto;">Нет избранных игр</div>
+            {% endfor %}
+            {% if favorites_page_obj and favorites_page_obj.has_other_pages %}
+                <div class="pagination" style="display:flex;justify-content:center;align-items:center;margin:32px 0;gap:8px;">
+                    {% if favorites_page_obj.has_previous %}
+                        <a href="?fav_page=1#favorites" style="padding:6px 12px;border-radius:6px;background:#23243a;color:#fff;text-decoration:none;">&laquo;</a>
+                        <a href="?fav_page={{ favorites_page_obj.previous_page_number }}#favorites" style="padding:6px 12px;border-radius:6px;background:#23243a;color:#fff;text-decoration:none;">&lt;</a>
+                    {% endif %}
+                    {% for num in favorites_page_obj.paginator.page_range %}
+                        {% if num == favorites_page_obj.number %}
+                            <span style="padding:6px 12px;border-radius:6px;background:#2196f3;color:#fff;font-weight:700;">{{ num }}</span>
+                        {% elif num >= favorites_page_obj.number|add:'-2' and num <= favorites_page_obj.number|add:'2' %}
+                            <a href="?fav_page={{ num }}#favorites" style="padding:6px 12px;border-radius:6px;background:#23243a;color:#fff;text-decoration:none;">{{ num }}</a>
+                        {% endif %}
+                    {% endfor %}
+                    {% if favorites_page_obj.has_next %}
+                        <a href="?fav_page={{ favorites_page_obj.next_page_number }}#favorites" style="padding:6px 12px;border-radius:6px;background:#23243a;color:#fff;text-decoration:none;">&gt;</a>
+                        <a href="?fav_page={{ favorites_page_obj.paginator.num_pages }}#favorites" style="padding:6px 12px;border-radius:6px;background:#23243a;color:#fff;text-decoration:none;">&raquo;</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    <!-- Стили перенесены в <head> -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const themeToggle = document.getElementById('theme-toggle');
+                if(localStorage.getItem('theme') === 'light') {
+                    document.body.classList.add('light');
+                    themeToggle.checked = true;
+                }
+                themeToggle.addEventListener('change', function() {
+                    if(this.checked) {
+                        document.body.classList.add('light');
+                        localStorage.setItem('theme', 'light');
+                    } else {
+                        document.body.classList.remove('light');
+                        localStorage.setItem('theme', 'dark');
+                    }
+                });
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        let cat = this.getAttribute('data-cat');
+                        document.querySelectorAll('.category-block').forEach(block => {
+                            block.style.display = 'none';
+                        });
+                        document.getElementById(cat).style.display = '';
+                        window.location.hash = cat;
+                    });
+                });
+                // При загрузке страницы показывать категорию из hash или query-параметра пагинации
+                function showCategoryFromHash() {
+                    const hashCat = window.location.hash.replace('#','');
+                    let cat = hashCat;
+                    // Если hash нет, определяем категорию по query-параметру
+                    if (!cat) {
+                        const params = new URLSearchParams(window.location.search);
+                        if (params.has('updated_page')) cat = 'updated';
+                        else if (params.has('top_page')) cat = 'top';
+                        else if (params.has('year_page')) cat = 'year';
+                        else if (params.has('fav_page')) cat = 'favorites';
+                        else cat = 'new';
+                    }
+                    document.querySelectorAll('.category-block').forEach(block => {
+                        block.style.display = 'none';
+                    });
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    if(cat === 'favorites') {
+                        document.getElementById('favorites').style.display = '';
+                    } else if(cat && document.getElementById(cat)) {
+                        document.querySelector('.filter-btn[data-cat="'+cat+'"]').classList.add('active');
+                        document.getElementById(cat).style.display = '';
+                    } else {
+                        document.querySelector('.filter-btn[data-cat="new"]').classList.add('active');
+                        document.getElementById('new').style.display = '';
+                    }
+                }
+                window.addEventListener('hashchange', showCategoryFromHash);
+                showCategoryFromHash();
+            });
+        </script>
+</body>
+</html>

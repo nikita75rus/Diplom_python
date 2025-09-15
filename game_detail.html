@@ -1,0 +1,128 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ game.title }}</title>
+    <link rel="stylesheet" href="{% static 'catalog/main.css' %}">
+</head>
+<body>
+    <div class="game-detail-container">
+        <div style="display:flex;align-items:center;justify-content:center;gap:16px;">
+            <h2 style="margin-bottom:0;">{{ game.title }}</h2>
+            {% if user.is_authenticated %}
+                {% if game.id in favorites %}
+                    <a href="/remove-favorite/{{ game.id }}/" class="fav-toggle" title="Убрать из избранного" style="font-size:2em;color:#ffb300;">★</a>
+                {% else %}
+                    <a href="/add-favorite/{{ game.id }}/" class="fav-toggle" title="Добавить в избранное" style="font-size:2em;color:#ffe0a3;">☆</a>
+                {% endif %}
+                {% if user.is_superuser %}
+                    <a href="{% url 'upload_torrent' %}" class="btn" style="margin-left:18px;padding:8px 18px;background:#ffb300;color:#23283a;border-radius:8px;font-weight:600;text-decoration:none;">Загрузить торрент</a>
+                {% endif %}
+            {% endif %}
+        </div>
+        {% if game.cover_image %}
+            <img src="{{ game.cover_image.url }}" alt="Обложка" class="cover-img">
+        {% endif %}
+        <div class="game-info">
+            <strong>Описание:</strong><br>
+            {{ game.description }}
+        </div>
+        <div class="game-tags">
+            <strong>Теги:</strong>
+            {% for tag in game.tags.all %}
+                <span>{{ tag.name }}</span>
+            {% empty %}
+                <span style="background:#888;">Нет тегов</span>
+            {% endfor %}
+        </div>
+        <div>
+            <strong>Дата выхода:</strong> {{ game.release_date }}
+        </div>
+        <div class="torrent-list">
+            <strong>Торренты:</strong>
+            <ul>
+                {% for torrent in torrents %}
+                    <li>
+                        <a href="{{ torrent.file.url }}">Скачать торрент</a>
+                        (загрузил: {{ torrent.uploaded_by }})
+                    </li>
+                {% empty %}
+                    <li>Нет торрентов</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <hr style="margin:32px 0 18px 0; border:0; border-top:1px solid #444;">
+        <div class="comments-section" style="background:#23283a;border-radius:12px;padding:24px 24px 18px 24px;box-shadow:0 2px 8px #0002;max-width:600px;margin:32px auto;">
+            {% if comments %}
+                <ul class="comment-list">
+                    {% for comment in comments %}
+                        <li class="comment-item">
+                            <div class="comment-text">{{ comment.text|linebreaksbr }}</div>
+                            <div class="comment-meta">
+                                <b>{{ comment.user.username }}</b> • {{ comment.created_at|date:'d.m.Y H:i' }}
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="comment-empty">Комментариев пока нет.</div>
+            {% endif %}
+
+            {% if user.is_authenticated %}
+                <form method="post" class="comment-form-inline">
+                    {% csrf_token %}
+                    {% if comment_success %}
+                        <div class="comment-success">Комментарий добавлен!</div>
+                    {% endif %}
+                    {% if comment_error %}
+                        <div class="comment-error">{{ comment_error }}</div>
+                    {% endif %}
+                    <div class="comment-input-row">
+                        <input type="text" name="comment_text" class="comment-input" placeholder="Ваш комментарий..." required>
+                        <button type="button" class="emoji-btn" id="emoji-btn" title="Смайлики">😊</button>
+                        <button type="submit" class="comment-send-btn" title="Отправить">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="12" fill="#4fc3f7"/><path d="M8 12h8M16 12l-4-4m4 4l-4 4" stroke="#23283a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </button>
+                        <div class="emoji-panel" id="emoji-panel">
+                            <span>😀</span><span>�</span><span>😎</span><span>�</span><span>🤔</span><span>👍</span><span>👎</span><span>🎮</span><span>🔥</span><span>❤️</span>
+                        </div>
+                    </div>
+                </form>
+            {% else %}
+                <div class="comment-login">Войдите, чтобы оставить комментарий.</div>
+            {% endif %}
+        </div>
+        <a href="/" class="back-link">На главную</a>
+    </div>
+        <script>
+            // Emoji panel logic
+            const emojiBtn = document.getElementById('emoji-btn');
+            const emojiPanel = document.getElementById('emoji-panel');
+            const textarea = document.querySelector('textarea[name="comment_text"]');
+            emojiBtn.addEventListener('click', function(e) {
+                emojiPanel.style.display = emojiPanel.style.display === 'none' ? 'block' : 'none';
+            });
+            emojiPanel.addEventListener('mousedown', function(e) {
+                if (e.target.classList.contains('emoji-choice')) {
+                    // Вставка emoji в текущее место курсора
+                    const emoji = e.target.textContent;
+                    const start = textarea.selectionStart;
+                    const end = textarea.selectionEnd;
+                    const text = textarea.value;
+                    textarea.value = text.slice(0, start) + emoji + text.slice(end);
+                    textarea.focus();
+                    textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
+                    emojiPanel.style.display = 'none';
+                    e.preventDefault();
+                }
+            });
+            // Скрывать панель при клике вне
+            document.addEventListener('mousedown', function(e) {
+                if (!emojiPanel.contains(e.target) && e.target !== emojiBtn) {
+                    emojiPanel.style.display = 'none';
+                }
+            });
+        </script>
+</body>
+</html>

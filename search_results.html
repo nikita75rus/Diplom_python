@@ -1,0 +1,172 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Результаты поиска</title>
+    <link rel="stylesheet" href="{% static 'catalog/main.css' %}">
+    <style>
+        .search-title {
+            color:#fff;
+            font-size:2.2em;
+            font-weight:700;
+            margin-bottom:24px;
+        }
+        .search-form-block {
+            background:#23243a;
+            border-radius:12px;
+            padding:32px 32px 24px 32px;
+            margin-bottom:32px;
+            box-shadow:0 2px 16px #0002;
+            max-width:480px;
+        }
+        .search-form-block input[type="text"] {
+            width:100%;
+            font-size:1.2em;
+            padding:10px;
+            border-radius:8px;
+            border:none;
+            margin-bottom:16px;
+        }
+        .search-form-block button {
+            background:#2196f3;
+            color:#fff;
+            border:none;
+            padding:10px 24px;
+            border-radius:8px;
+            font-size:1.1em;
+            font-weight:600;
+            cursor:pointer;
+        }
+        .search-info {
+            color:#bbb;
+            font-size:1.1em;
+            margin-bottom:18px;
+        }
+        .search-card {
+            background:#23243a;
+            border-radius:12px;
+            box-shadow:0 2px 12px #0002;
+            display:flex;
+            align-items:center;
+            margin-bottom:18px;
+            padding:18px 24px;
+        }
+        .search-card img {
+            width:90px;
+            height:90px;
+            object-fit:cover;
+            border-radius:8px;
+            margin-right:24px;
+        }
+        .search-card .search-main {
+            flex:1;
+        }
+        .search-card .search-title {
+            font-size:1.3em;
+            font-weight:600;
+            color:#fff;
+            margin-bottom:8px;
+        }
+        .search-card .search-meta {
+            color:#bbb;
+            font-size:1em;
+            margin-bottom:6px;
+        }
+        .search-card .search-rating {
+            color:#ffd700;
+            font-size:1.2em;
+            font-weight:700;
+            margin-right:12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-bar">
+        <h1><a href="/" style="color:inherit;text-decoration:none;">TorrentNest</a></h1>
+        <div class="header-actions">
+            <form method="get" action="/search/" class="search-form">
+                <input type="text" name="q" placeholder="Поиск игр" value="{{ query }}">
+                <select name="tag">
+                    <option value="">-- По тегу --</option>
+                    {% for tag in tags %}
+                        <option value="{{ tag.name }}" {% if tag_filter == tag.name %}selected{% endif %}>{{ tag.name }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Найти</button>
+            </form>
+            <label class="theme-switch">
+                <input type="checkbox" id="theme-toggle">
+                <span class="slider"></span>
+            </label>
+            {% if user.is_authenticated %}
+                <span class="user-info">
+                    <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Пользователь" style="width:28px;vertical-align:middle;">
+                    {{ user.username }}
+                    <button class="favorites-btn" onclick="window.location.href='/'" style="margin-left:10px;background:#2196f3;color:#fff;border:none;padding:6px 16px;border-radius:8px;cursor:pointer;font-weight:600;">
+                        Избранное <span style="background:#fff;color:#2196f3;border-radius:6px;padding:2px 8px;font-size:1em;margin-left:4px;">{{ favorites_games|length }}</span>
+                    </button>
+                    <form action="/logout/" method="post" style="display:inline; margin-left:10px;">
+                        {% csrf_token %}
+                        <button type="submit" class="register-btn">Выйти</button>
+                    </form>
+                </span>
+            {% else %}
+                <a href="/login/" class="register-btn">Войти</a>
+                <a href="/register/" class="register-btn">Регистрация</a>
+            {% endif %}
+        </div>
+    </div>
+    <div style="max-width:800px;margin:32px auto 0 auto;">
+        <div class="search-title">Поиск игр на сайте</div>
+        <div class="search-form-block">
+            <form method="get" action="/search/">
+                <input type="text" name="q" placeholder="Введите название игры" value="{{ query }}">
+                <button type="submit">Начать поиск</button>
+            </form>
+        </div>
+        <div class="search-info">
+            {% if search_results %}
+                По вашему запросу найдено {{ search_results|length }} игр:
+            {% else %}
+                Ничего не найдено
+            {% endif %}
+        </div>
+        {% for game in search_results %}
+            <a href="{% url 'game_detail' game.id %}" class="search-card" style="text-decoration:none;color:inherit;">
+                {% if game.cover_image %}
+                    <img src="{{ game.cover_image.url }}" alt="Обложка">
+                {% endif %}
+                <div class="search-main">
+                    <div class="search-title">{{ game.title }}</div>
+                    <div class="search-meta">{{ game.release_date|date:"Y" }}{% if game.file_size %} • {{ game.file_size }}{% endif %}</div>
+                    <div>
+                        <span class="search-rating">★ {{ game.rating|default:"7.0" }}</span>
+                    </div>
+                </div>
+            </a>
+        {% empty %}
+            <div style="color:#fff;font-size:1.2em;margin:32px auto;">Ничего не найдено</div>
+        {% endfor %}
+        {% if page_obj.has_other_pages %}
+        <div class="pagination" style="display:flex;justify-content:center;align-items:center;margin:32px 0;gap:8px;">
+            {% if page_obj.has_previous %}
+                <a href="?q={{ query }}&tag={{ tag_filter }}&page=1" style="padding:6px 12px;border-radius:6px;background:#23243a;color:#fff;text-decoration:none;">&laquo;</a>
+                <a href="?q={{ query }}&tag={{ tag_filter }}&page={{ page_obj.previous_page_number }}" style="padding:6px 12px;border-radius:6px;background:#23243a;color:#fff;text-decoration:none;">&lt;</a>
+            {% endif %}
+            {% for num in page_obj.paginator.page_range %}
+                {% if num == page_obj.number %}
+                    <span style="padding:6px 12px;border-radius:6px;background:#2196f3;color:#fff;font-weight:700;">{{ num }}</span>
+                {% elif num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
+                    <a href="?q={{ query }}&tag={{ tag_filter }}&page={{ num }}" style="padding:6px 12px;border-radius:6px;background:#23243a;color:#fff;text-decoration:none;">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+            {% if page_obj.has_next %}
+                <a href="?q={{ query }}&tag={{ tag_filter }}&page={{ page_obj.next_page_number }}" style="padding:6px 12px;border-radius:6px;background:#23243a;color:#fff;text-decoration:none;">&gt;</a>
+                <a href="?q={{ query }}&tag={{ tag_filter }}&page={{ page_obj.paginator.num_pages }}" style="padding:6px 12px;border-radius:6px;background:#23243a;color:#fff;text-decoration:none;">&raquo;</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

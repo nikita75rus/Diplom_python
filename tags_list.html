@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Теги игр</title>
+    <style>
+        body {
+            background: #181c24;
+            color: #f3f3f3;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .tags-container {
+            max-width: 700px;
+            margin: 40px auto;
+            background: #23283a;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px #0003;
+            padding: 32px 28px 24px 28px;
+        }
+        h2 {
+            color: #ffb300;
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .tags-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
+        .tag-link {
+            background: #4fc3f7;
+            color: #23283a;
+            border-radius: 8px;
+            padding: 10px 22px;
+            font-weight: bold;
+            font-size: 1.1em;
+            text-decoration: none;
+            box-shadow: 0 2px 8px #0002;
+            transition: background 0.2s, color 0.2s;
+        }
+        .tag-link:hover {
+            background: #ffb300;
+            color: #23283a;
+        }
+    </style>
+</head>
+<body>
+    <div class="tags-container">
+        <h2>Все игровые теги</h2>
+        <div class="tags-list">
+            {% for tag in tags %}
+                <a href="/?tag={{ tag.name }}" class="tag-link">{{ tag.name }}</a>
+            {% endfor %}
+        </div>
+        <div style="text-align:center; margin-top:24px;">
+            <a href="/" style="color:#4fc3f7;">На главную</a>
+        </div>
+    </div>
+</body>
+</html>

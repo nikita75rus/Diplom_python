@@ -1,0 +1,33 @@
+1. Baldur's Gate 3 | Жанр: RPG | Дата выхода: 2023
+2. Starfield | Жанр: RPG, Sci-Fi | Дата выхода: 2023
+3. Resident Evil 4 (Remake) | Жанр: Horror, Action | Дата выхода: 2023
+4. Spider-Man: Miles Morales | Жанр: Action, Adventure | Дата выхода: 2020
+5. The Elder Scrolls VI (ожидается) | Жанр: RPG, Fantasy | Дата выхода: ожидается
+6. Final Fantasy XVI | Жанр: RPG | Дата выхода: 2023
+7. Diablo IV | Жанр: RPG, Action | Дата выхода: 2023
+8. Hogwarts Legacy | Жанр: RPG, Adventure | Дата выхода: 2023
+9. Cyberpunk 2077: Phantom Liberty | Жанр: RPG, Action | Дата выхода: 2023
+10. Armored Core VI: Fires of Rubicon | Жанр: Action, Mech | Дата выхода: 2023
+11. Street Fighter VI | Жанр: Fighting | Дата выхода: 2023
+12. Lies of P | Жанр: RPG, Souls-like | Дата выхода: 2023
+13. Assassin's Creed Mirage | Жанр: Action, Adventure | Дата выхода: 2023
+14. Alan Wake II | Жанр: Horror, Adventure | Дата выхода: 2023
+15. Mortal Kombat 1 | Жанр: Fighting | Дата выхода: 2023
+16. Remnant II | Жанр: Action, Shooter | Дата выхода: 2023
+17. Star Wars Jedi: Survivor | Жанр: Action, Adventure | Дата выхода: 2023
+18. Hogwarts Legacy | Жанр: RPG, Adventure | Дата выхода: 2023
+19. Forza Motorsport | Жанр: Racing | Дата выхода: 2023
+20. Avowed | Жанр: RPG, Fantasy | Дата выхода: ожидается
+21. Baldur’s Gate III | Жанр: RPG | Дата выхода: 2023
+22. Dying Light 2: Stay Human | Жанр: Action, Horror | Дата выхода: 2022
+23. Lies of P | Жанр: RPG, Souls-like | Дата выхода: 2023
+24. Octopath Traveler II | Жанр: RPG | Дата выхода: 2023
+25. Atomic Heart | Жанр: Shooter, Adventure | Дата выхода: 2023
+26. Warhammer 40,000: Darktide | Жанр: Action, Shooter | Дата выхода: 2022
+27. The Outlast Trials | Жанр: Horror, Co-op | Дата выхода: 2023
+28. A Plague Tale: Requiem | Жанр: Adventure, Stealth | Дата выхода: 2022
+29. Ghostwire: Tokyo | Жанр: Action, Adventure | Дата выхода: 2022
+30. Returnal | Жанр: Action, Roguelike | Дата выхода: 2021
+... (и далее по списку, жанры и даты для популярных игр, для остальных можно оставить "ожидается" или "не указано")
+
+# Примечание: Для полного списка жанров и дат выхода потребуется дополнительная информация по каждой игре. Для популярных и ожидаемых игр жанры и даты указаны максимально точно. Остальные можно дополнить по мере необходимости.
